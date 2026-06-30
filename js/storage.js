@@ -4,6 +4,20 @@
 // Shape stored: { "<slug>": [{hue,sat,val}, ...], ... }  (one entry per zone)
 
 const KEY = "vortexro_palette_projects_v1";
+const THEME_KEY = "vortexro_palette_theme_v1";
+
+// Theme = an ordered list of absolute target colours (hex) carried across
+// classes for a coherent palette. null = no theme active.
+export function saveTheme(hexes) {
+  try { localStorage.setItem(THEME_KEY, JSON.stringify(hexes)); } catch { /* */ }
+}
+export function loadTheme() {
+  try { const v = JSON.parse(localStorage.getItem(THEME_KEY)); return Array.isArray(v) ? v : null; }
+  catch { return null; }
+}
+export function clearTheme() {
+  try { localStorage.removeItem(THEME_KEY); } catch { /* */ }
+}
 
 function readAll() {
   try { return JSON.parse(localStorage.getItem(KEY)) || {}; }

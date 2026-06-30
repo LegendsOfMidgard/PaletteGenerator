@@ -6,7 +6,8 @@
 import { downloadPal } from "./formats/pal.js";
 import { loadSpr, loadAct, drawSprite, drawAction, frameCount } from "./render.js";
 import { computeZones, applyZone, rgb2hsv } from "./zones.js";
-import { saveClass, loadClassParams, exportProject, importProject } from "./storage.js";
+import { saveClass, loadClassParams, exportProject, importProject,
+         saveTheme, loadTheme, clearTheme } from "./storage.js";
 
 const hex2 = (n) => n.toString(16).padStart(2, "0");
 const rgb2hex = ([r, g, b]) => `#${hex2(r)}${hex2(g)}${hex2(b)}`;
@@ -20,6 +21,7 @@ const state = {
   base: null, mask: null, working: null,
   zones: [], params: [],
   spr: null, act: null, dir: 0, animFrame: 0, timer: null, frame: 0,
+  theme: null, // [hex,...] absolute target colours carried across classes
 };
 
 const els = {
@@ -30,6 +32,7 @@ const els = {
   zones: document.getElementById("zones"),
   reset: document.getElementById("resetBtn"),
   random: document.getElementById("randomBtn"),
+  pin: document.getElementById("pinBtn"),
   export: document.getElementById("exportBtn"),
   saveProj: document.getElementById("saveProjBtn"),
   loadProj: document.getElementById("loadProjBtn"),
@@ -73,14 +76,21 @@ async function loadClass(slug) {
   state.base = d.base;
   state.mask = d.mask;
   state.zones = computeZones(d.base, d.mask);
-  const saved = loadClassParams(slug, state.zones.length);
-  state.params = saved
-    ? saved.map((p) => ({ hue: p.hue, sat: p.sat, val: p.val }))
-    : state.zones.map(() => ({ hue: 0, sat: 1, val: 1 }));
+  // Theme (coherent palette) takes precedence; otherwise restore saved tweaks.
+  if (state.theme) {
+    state.params = state.zones.map(() => ({ hue: 0, sat: 1, val: 1 }));
+    applyThemeToParams();
+  } else {
+    const saved = loadClassParams(slug, state.zones.length);
+    state.params = saved
+      ? saved.map((p) => ({ hue: p.hue, sat: p.sat, val: p.val }))
+      : state.zones.map(() => ({ hue: 0, sat: 1, val: 1 }));
+  }
   state.working = d.base.map((c) => c.slice());
 
   const label = state.sex ? `${state.displayName} (${SEX_LABEL[state.sex]})` : state.displayName;
-  els.status.textContent = `${label} — ${state.zones.length} colour zone${state.zones.length === 1 ? "" : "s"}.`;
+  const themed = state.theme ? ` · 🎨 theme applied (${state.theme.length} colours)` : "";
+  els.status.textContent = `${label} — ${state.zones.length} colour zone${state.zones.length === 1 ? "" : "s"}${themed}.`;
   buildZoneUI();
   syncSliders();
 
@@ -176,23 +186,41 @@ function updateSwatch(zi) {
   }
 }
 
-// Pick an absolute colour for a zone: derive H/S/B deltas that move the zone's
-// base representative colour onto the picked colour, then apply to the whole ramp.
-function applyPicked(zi, hex) {
-  const z = state.zones[zi];
+// Derive the H/S/B deltas that move a zone's BASE representative colour onto an
+// absolute target colour (hex). Pure — returns {hue,sat,val}, clamped to ranges.
+function paramsForTarget(z, hex) {
   const [th, ts, tv] = rgb2hsv(hex2rgb(hex));
-  const [bh, bs, bv] = rgb2hsv(z.color);            // base (unmodified) representative
-  let hue = ((th - bh + 540) % 360) - 180;          // normalise to [-180,180)
+  const [bh, bs, bv] = rgb2hsv(z.color);
+  const hue = ((th - bh + 540) % 360) - 180;
   const sat = bs > 0.01 ? ts / bs : (ts > 0.01 ? 2 : 1);
   const val = bv > 0.01 ? tv / bv : 1;
-  state.params[zi] = {
-    hue: clamp(Math.round(hue), -180, 180),
-    sat: clamp(sat, 0, 2),
-    val: clamp(val, 0.5, 1.5),
-  };
+  return { hue: clamp(Math.round(hue), -180, 180), sat: clamp(sat, 0, 2), val: clamp(val, 0.5, 1.5) };
+}
+
+// Pick an absolute colour for a zone (from the colour picker), apply live.
+function applyPicked(zi, hex) {
+  state.params[zi] = paramsForTarget(state.zones[zi], hex);
   syncSliders();
   recompute();
   saveClass(state.slug, state.params);
+}
+
+// Current absolute target colour of each zone (the recoloured representative).
+function captureTheme() {
+  return state.zones.map((z, i) => {
+    const tmp = state.base.map((c) => c.slice());
+    applyZone(state.base, tmp, z, state.params[i]);
+    return rgb2hex(tmp[z.repIdx >= 0 ? z.repIdx : z.indices[0]]);
+  });
+}
+
+// When a theme is active, set params so each zone hits the theme colour (by
+// index). Zones beyond the theme length keep whatever params they already have.
+function applyThemeToParams() {
+  if (!state.theme) return;
+  state.zones.forEach((z, i) => {
+    if (state.theme[i]) state.params[i] = paramsForTarget(z, state.theme[i]);
+  });
 }
 
 function drawPalette() {
@@ -267,6 +295,23 @@ function syncSliders() {
   });
 }
 
+els.pin.addEventListener("click", () => {
+  if (state.theme) {                 // unpin
+    state.theme = null;
+    clearTheme();
+  } else {                           // pin current zone colours as the theme
+    state.theme = captureTheme();
+    saveTheme(state.theme);
+  }
+  refreshThemeUI();
+});
+
+function refreshThemeUI() {
+  const on = !!state.theme;
+  els.pin.textContent = on ? `Unpin (${state.theme.length})` : "Pin colours";
+  els.pin.classList.toggle("active", on);
+}
+
 els.framePrev.addEventListener("click", () => step(-1));
 els.frameNext.addEventListener("click", () => step(1));
 function step(d) {
@@ -313,4 +358,6 @@ els.loadProjInput.addEventListener("change", async (e) => {
   }
 });
 
+state.theme = loadTheme();
+refreshThemeUI();
 loadIndex().catch((e) => (els.status.textContent = "Error: " + e.message));

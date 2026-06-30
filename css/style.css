@@ -25,6 +25,7 @@ button:hover { filter:brightness(1.08); }
 button.primary { background:linear-gradient(135deg, var(--accent), var(--accent-2)); color:#0a0c16; }
 button.ghost { background:#2d313b; color:var(--fg); font-weight:500; padding:7px 13px; }
 button.ghost:hover { background:#363b47; }
+button.ghost.active { background:linear-gradient(135deg, var(--accent), var(--accent-2)); color:#0a0c16; font-weight:600; }
 
 /* layout */
 main { display:flex; flex-wrap:wrap; gap:18px; padding:22px; align-items:flex-start; }
