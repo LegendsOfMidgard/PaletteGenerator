@@ -1,0 +1,19 @@
+# Don't deploy the readable JS source — the site serves dist/ bundles only.
+js/
+tools/
+*.py
+
+# Build / dev cruft
+node_modules/
+package.json
+package-lock.json
+webpack.config.js
+.git
+
+# Docs
+*.md
+
+# Raw GRF sprite dumps (여/남 subfolders, ~161MB) — runtime uses the flat
+# resources/classes/<slug>.spr|.act only. This globs out every subdirectory
+# under classes while keeping the flat slug files.
+resources/classes/*/
