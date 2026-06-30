@@ -345,7 +345,7 @@ function step(d) {
   }
 }
 
-els.export.addEventListener("click", () => {
+els.export?.addEventListener("click", () => {
   if (!state.working) return;
   const x = Math.max(1, Math.min(255, parseInt(els.slot.value, 10) || 1));
   // Name the file with the ORIGINAL cp949 token bytes decoded as Windows-1252,
