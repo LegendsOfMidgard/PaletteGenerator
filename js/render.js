@@ -45,7 +45,7 @@ function frameToCanvas(fr, working) {
 
 // Draw a composited .act motion frame (layers = spr frames at x/y offsets).
 // Origin is canvas centre, nudged down so the body stands on its feet.
-export function drawAction(canvas, spr, act, actionIdx, frameIdx, working) {
+export function drawAction(canvas, spr, act, actionIdx, frameIdx, working, scale = 2) {
   const ctx = canvas.getContext("2d");
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.imageSmoothingEnabled = false;
@@ -55,8 +55,7 @@ export function drawAction(canvas, spr, act, actionIdx, frameIdx, working) {
   if (!action || !action.frames.length) return;
   const frame = action.frames[Math.max(0, Math.min(action.frames.length - 1, frameIdx))];
 
-  const scale = 2;
-  const ox = canvas.width / 2, oy = canvas.height / 2 + 40;
+  const ox = canvas.width / 2, oy = canvas.height / 2 + 40 * (scale / 2);
   for (const ly of frame.layers) {
     if (ly.index < 0 || ly.index >= spr.frames.length) continue;
     const fr = spr.frames[ly.index];

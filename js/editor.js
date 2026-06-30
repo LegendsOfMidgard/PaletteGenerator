@@ -22,7 +22,9 @@ const state = {
   zones: [], params: [],
   spr: null, act: null, dir: 0, animFrame: 0, timer: null, frame: 0,
   theme: null, // [hex,...] absolute target colours carried across classes
+  zoom: 2,
 };
+const ZOOM_MIN = 1, ZOOM_MAX = 6;
 
 const els = {
   select: document.getElementById("classSelect"),
@@ -41,6 +43,9 @@ const els = {
   frameLabel: document.getElementById("frameLabel"),
   framePrev: document.getElementById("framePrev"),
   frameNext: document.getElementById("frameNext"),
+  zoomIn: document.getElementById("zoomIn"),
+  zoomOut: document.getElementById("zoomOut"),
+  zoomLabel: document.getElementById("zoomLabel"),
 };
 
 const GROUP_LABEL = { "1st": "1st Job", "2nd": "2nd Job", rebirth: "Rebirth", expanded: "Expanded" };
@@ -245,7 +250,7 @@ function drawPalette() {
 
 function renderSprite() {
   if (state.act && state.spr) {
-    drawAction(els.sprite, state.spr, state.act, idleAction(), state.animFrame, state.working);
+    drawAction(els.sprite, state.spr, state.act, idleAction(), state.animFrame, state.working, state.zoom);
     els.frameLabel.textContent = `facing ${DIR_NAMES[state.dir]}`;
   } else if (state.spr) {
     drawSprite(els.sprite, state.spr, state.frame, state.working); // fallback: raw frame
@@ -314,6 +319,18 @@ function refreshThemeUI() {
 
 els.framePrev.addEventListener("click", () => step(-1));
 els.frameNext.addEventListener("click", () => step(1));
+
+function setZoom(z) {
+  state.zoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, Math.round(z * 10) / 10));
+  els.zoomLabel.textContent = `${state.zoom.toFixed(1)}×`;
+  renderSprite();
+}
+els.zoomIn.addEventListener("click", () => setZoom(state.zoom + 0.5));
+els.zoomOut.addEventListener("click", () => setZoom(state.zoom - 0.5));
+els.sprite.addEventListener("wheel", (e) => {
+  e.preventDefault();
+  setZoom(state.zoom + (e.deltaY < 0 ? 0.25 : -0.25));
+}, { passive: false });
 function step(d) {
   if (state.act && state.spr) {                 // rotate idle direction
     state.dir = (state.dir + d + 8) % 8;
