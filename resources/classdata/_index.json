@@ -1,0 +1,506 @@
+[
+ {
+  "slug": "b1c3bcf6_f",
+  "token": "궁수_여",
+  "sex": "f",
+  "displayName": "Archer",
+  "group": "1st"
+ },
+ {
+  "slug": "b1c3bcf6_m",
+  "token": "궁수_남",
+  "sex": "m",
+  "displayName": "Archer",
+  "group": "1st"
+ },
+ {
+  "slug": "b8b6b9fdbbe7_f",
+  "token": "마법사_여",
+  "sex": "f",
+  "displayName": "Mage",
+  "group": "1st"
+ },
+ {
+  "slug": "b8b6b9fdbbe7_m",
+  "token": "마법사_남",
+  "sex": "m",
+  "displayName": "Mage",
+  "group": "1st"
+ },
+ {
+  "slug": "bbf3c0ce_f",
+  "token": "상인_여",
+  "sex": "f",
+  "displayName": "Merchant",
+  "group": "1st"
+ },
+ {
+  "slug": "bbf3c0ce_m",
+  "token": "상인_남",
+  "sex": "m",
+  "displayName": "Merchant",
+  "group": "1st"
+ },
+ {
+  "slug": "c3cabab8c0da_f",
+  "token": "초보자_여",
+  "sex": "f",
+  "displayName": "Novice",
+  "group": "1st"
+ },
+ {
+  "slug": "c3cabab8c0da_m",
+  "token": "초보자_남",
+  "sex": "m",
+  "displayName": "Novice",
+  "group": "1st"
+ },
+ {
+  "slug": "b0cbbbe7_f",
+  "token": "검사_여",
+  "sex": "f",
+  "displayName": "Swordman",
+  "group": "1st"
+ },
+ {
+  "slug": "b0cbbbe7_m",
+  "token": "검사_남",
+  "sex": "m",
+  "displayName": "Swordman",
+  "group": "1st"
+ },
+ {
+  "slug": "b5b5b5cf_f",
+  "token": "도둑_여",
+  "sex": "f",
+  "displayName": "Thief",
+  "group": "1st"
+ },
+ {
+  "slug": "b5b5b5cf_m",
+  "token": "도둑_남",
+  "sex": "m",
+  "displayName": "Thief",
+  "group": "1st"
+ },
+ {
+  "slug": "bfacb1ddbcfabbe7_f",
+  "token": "연금술사_여",
+  "sex": "f",
+  "displayName": "Alchemist",
+  "group": "2nd"
+ },
+ {
+  "slug": "bfacb1ddbcfabbe7_m",
+  "token": "연금술사_남",
+  "sex": "m",
+  "displayName": "Alchemist",
+  "group": "2nd"
+ },
+ {
+  "slug": "beeebcbcbdc5_f",
+  "token": "어세신_여",
+  "sex": "f",
+  "displayName": "Assassin",
+  "group": "2nd"
+ },
+ {
+  "slug": "beeebcbcbdc5_m",
+  "token": "어세신_남",
+  "sex": "m",
+  "displayName": "Assassin",
+  "group": "2nd"
+ },
+ {
+  "slug": "b9d9b5e5_m",
+  "token": "바드_남",
+  "sex": "m",
+  "displayName": "Bard",
+  "group": "2nd"
+ },
+ {
+  "slug": "c1a6c3b6b0f8_f",
+  "token": "제철공_여",
+  "sex": "f",
+  "displayName": "Blacksmith",
+  "group": "2nd"
+ },
+ {
+  "slug": "c1a6c3b6b0f8_m",
+  "token": "제철공_남",
+  "sex": "m",
+  "displayName": "Blacksmith",
+  "group": "2nd"
+ },
+ {
+  "slug": "c5a9b7e7_f",
+  "token": "크루_여",
+  "sex": "f",
+  "displayName": "Crusader",
+  "group": "2nd"
+ },
+ {
+  "slug": "c5a9b7e7_m",
+  "token": "크루_남",
+  "sex": "m",
+  "displayName": "Crusader",
+  "group": "2nd"
+ },
+ {
+  "slug": "b9abc8f1_f",
+  "token": "무희_여",
+  "sex": "f",
+  "displayName": "Dancer",
+  "group": "2nd"
+ },
+ {
+  "slug": "c7e5c5cd_f",
+  "token": "헌터_여",
+  "sex": "f",
+  "displayName": "Hunter",
+  "group": "2nd"
+ },
+ {
+  "slug": "c7e5c5cd_m",
+  "token": "헌터_남",
+  "sex": "m",
+  "displayName": "Hunter",
+  "group": "2nd"
+ },
+ {
+  "slug": "b1e2bbe7_f",
+  "token": "기사_여",
+  "sex": "f",
+  "displayName": "Knight",
+  "group": "2nd"
+ },
+ {
+  "slug": "b1e2bbe7_m",
+  "token": "기사_남",
+  "sex": "m",
+  "displayName": "Knight",
+  "group": "2nd"
+ },
+ {
+  "slug": "b8f9c5a9_f",
+  "token": "몽크_여",
+  "sex": "f",
+  "displayName": "Monk",
+  "group": "2nd"
+ },
+ {
+  "slug": "b8f9c5a9_m",
+  "token": "몽크_남",
+  "sex": "m",
+  "displayName": "Monk",
+  "group": "2nd"
+ },
+ {
+  "slug": "c7c1b8aebdbac6ae_f",
+  "token": "프리스트_여",
+  "sex": "f",
+  "displayName": "Priest",
+  "group": "2nd"
+ },
+ {
+  "slug": "c7c1b8aebdbac6ae_m",
+  "token": "프리스트_남",
+  "sex": "m",
+  "displayName": "Priest",
+  "group": "2nd"
+ },
+ {
+  "slug": "b7ceb1d7_f",
+  "token": "로그_여",
+  "sex": "f",
+  "displayName": "Rogue",
+  "group": "2nd"
+ },
+ {
+  "slug": "b7ceb1d7_m",
+  "token": "로그_남",
+  "sex": "m",
+  "displayName": "Rogue",
+  "group": "2nd"
+ },
+ {
+  "slug": "bcbcc0ccc1f6_f",
+  "token": "세이지_여",
+  "sex": "f",
+  "displayName": "Sage",
+  "group": "2nd"
+ },
+ {
+  "slug": "bcbcc0ccc1f6_m",
+  "token": "세이지_남",
+  "sex": "m",
+  "displayName": "Sage",
+  "group": "2nd"
+ },
+ {
+  "slug": "c0a7c0fab5e5_f",
+  "token": "위저드_여",
+  "sex": "f",
+  "displayName": "Wizard",
+  "group": "2nd"
+ },
+ {
+  "slug": "c0a7c0fab5e5_m",
+  "token": "위저드_남",
+  "sex": "m",
+  "displayName": "Wizard",
+  "group": "2nd"
+ },
+ {
+  "slug": "beeebcbcbdc5c5a9b7cebdba_f",
+  "token": "어세신크로스_여",
+  "sex": "f",
+  "displayName": "Assassin Cross",
+  "group": "rebirth"
+ },
+ {
+  "slug": "beeebcbcbdc5c5a9b7cebdba_m",
+  "token": "어세신크로스_남",
+  "sex": "m",
+  "displayName": "Assassin Cross",
+  "group": "rebirth"
+ },
+ {
+  "slug": "c3a8c7c7bfc2_f",
+  "token": "챔피온_여",
+  "sex": "f",
+  "displayName": "Champion",
+  "group": "rebirth"
+ },
+ {
+  "slug": "c3a8c7c7bfc2_m",
+  "token": "챔피온_남",
+  "sex": "m",
+  "displayName": "Champion",
+  "group": "rebirth"
+ },
+ {
+  "slug": "c5a9b8aebfa1c0ccc5cd_f",
+  "token": "크리에이터_여",
+  "sex": "f",
+  "displayName": "Creator",
+  "group": "rebirth"
+ },
+ {
+  "slug": "c5a9b8aebfa1c0ccc5cd_m",
+  "token": "크리에이터_남",
+  "sex": "m",
+  "displayName": "Creator",
+  "group": "rebirth"
+ },
+ {
+  "slug": "c1fdbdc3_f",
+  "token": "집시_여",
+  "sex": "f",
+  "displayName": "Gypsy",
+  "group": "rebirth"
+ },
+ {
+  "slug": "c7cfc0ccc7c1b8aebdbac6ae_f",
+  "token": "하이프리스트_여",
+  "sex": "f",
+  "displayName": "High Priest",
+  "group": "rebirth"
+ },
+ {
+  "slug": "c7cfc0ccc7c1b8aebdbac6ae_m",
+  "token": "하이프리스트_남",
+  "sex": "m",
+  "displayName": "High Priest",
+  "group": "rebirth"
+ },
+ {
+  "slug": "c7cfc0ccc0a7c0fab5e5_f",
+  "token": "하이위저드_여",
+  "sex": "f",
+  "displayName": "High Wizard",
+  "group": "rebirth"
+ },
+ {
+  "slug": "c7cfc0ccc0a7c0fab5e5_m",
+  "token": "하이위저드_남",
+  "sex": "m",
+  "displayName": "High Wizard",
+  "group": "rebirth"
+ },
+ {
+  "slug": "b7ceb5e5b3aac0ccc6ae_f",
+  "token": "로드나이트_여",
+  "sex": "f",
+  "displayName": "Lord Knight",
+  "group": "rebirth"
+ },
+ {
+  "slug": "b7ceb5e5b3aac0ccc6ae_m",
+  "token": "로드나이트_남",
+  "sex": "m",
+  "displayName": "Lord Knight",
+  "group": "rebirth"
+ },
+ {
+  "slug": "b9cebdbac6aeb7b2_m",
+  "token": "민스트럴_남",
+  "sex": "m",
+  "displayName": "Minstrel",
+  "group": "rebirth"
+ },
+ {
+  "slug": "c6c8b6f3b5f2_f",
+  "token": "팔라딘_여",
+  "sex": "f",
+  "displayName": "Paladin",
+  "group": "rebirth"
+ },
+ {
+  "slug": "c6c8b6f3b5f2_m",
+  "token": "팔라딘_남",
+  "sex": "m",
+  "displayName": "Paladin",
+  "group": "rebirth"
+ },
+ {
+  "slug": "c7c1b7cec6e4bcad_f",
+  "token": "프로페서_여",
+  "sex": "f",
+  "displayName": "Professor",
+  "group": "rebirth"
+ },
+ {
+  "slug": "c7c1b7cec6e4bcad_m",
+  "token": "프로페서_남",
+  "sex": "m",
+  "displayName": "Professor",
+  "group": "rebirth"
+ },
+ {
+  "slug": "bdbab3aac0ccc6db_f",
+  "token": "스나이퍼_여",
+  "sex": "f",
+  "displayName": "Sniper",
+  "group": "rebirth"
+ },
+ {
+  "slug": "bdbab3aac0ccc6db_m",
+  "token": "스나이퍼_남",
+  "sex": "m",
+  "displayName": "Sniper",
+  "group": "rebirth"
+ },
+ {
+  "slug": "bdbac5e4c4bf_f",
+  "token": "스토커_여",
+  "sex": "f",
+  "displayName": "Stalker",
+  "group": "rebirth"
+ },
+ {
+  "slug": "bdbac5e4c4bf_m",
+  "token": "스토커_남",
+  "sex": "m",
+  "displayName": "Stalker",
+  "group": "rebirth"
+ },
+ {
+  "slug": "c8adc0ccc6aebdbab9ccbdba_f",
+  "token": "화이트스미스_여",
+  "sex": "f",
+  "displayName": "Whitesmith",
+  "group": "rebirth"
+ },
+ {
+  "slug": "c8adc0ccc6aebdbab9ccbdba_m",
+  "token": "화이트스미스_남",
+  "sex": "m",
+  "displayName": "Whitesmith",
+  "group": "rebirth"
+ },
+ {
+  "slug": "b0c7b3ca_f",
+  "token": "건너_여",
+  "sex": "f",
+  "displayName": "Gunslinger",
+  "group": "expanded"
+ },
+ {
+  "slug": "b0c7b3ca_m",
+  "token": "건너_남",
+  "sex": "m",
+  "displayName": "Gunslinger",
+  "group": "expanded"
+ },
+ {
+  "slug": "b4d1c0da_f",
+  "token": "닌자_여",
+  "sex": "f",
+  "displayName": "Ninja",
+  "group": "expanded"
+ },
+ {
+  "slug": "b4d1c0da_m",
+  "token": "닌자_남",
+  "sex": "m",
+  "displayName": "Ninja",
+  "group": "expanded"
+ },
+ {
+  "slug": "bcd2bfefb8b5c4bf_f",
+  "token": "소울링커_여",
+  "sex": "f",
+  "displayName": "Soul Linker",
+  "group": "expanded"
+ },
+ {
+  "slug": "bcd2bfefb8b5c4bf_m",
+  "token": "소울링커_남",
+  "sex": "m",
+  "displayName": "Soul Linker",
+  "group": "expanded"
+ },
+ {
+  "slug": "b1c7bcba_f",
+  "token": "권성_여",
+  "sex": "f",
+  "displayName": "Star Gladiator",
+  "group": "expanded"
+ },
+ {
+  "slug": "b1c7bcba_m",
+  "token": "권성_남",
+  "sex": "m",
+  "displayName": "Star Gladiator",
+  "group": "expanded"
+ },
+ {
+  "slug": "bdb4c6dbb3ebbaf1bdba_f",
+  "token": "슈퍼노비스_여",
+  "sex": "f",
+  "displayName": "Super Novice",
+  "group": "expanded"
+ },
+ {
+  "slug": "bdb4c6dbb3ebbaf1bdba_m",
+  "token": "슈퍼노비스_남",
+  "sex": "m",
+  "displayName": "Super Novice",
+  "group": "expanded"
+ },
+ {
+  "slug": "c5c2b1c7bcd2b3e2_f",
+  "token": "태권소년_여",
+  "sex": "f",
+  "displayName": "TaeKwon",
+  "group": "expanded"
+ },
+ {
+  "slug": "c5c2b1c7bcd2b3e2_m",
+  "token": "태권소년_남",
+  "sex": "m",
+  "displayName": "TaeKwon",
+  "group": "expanded"
+ }
+]

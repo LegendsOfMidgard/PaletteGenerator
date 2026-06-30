@@ -1,0 +1,18 @@
+# Large binary assets — never commit
+*.grf
+*.gpf
+*.zip
+*.exe
+
+# OS / editor
+Thumbs.db
+.DS_Store
+.vscode/
+.idea/
+node_modules/
+
+# Extracted sprites are large-ish; commit the test class only, ignore bulk dumps
+resources/classes/_bulk/
+
+# Keep: js/, css/, index.html, tools/, resources/classdata/, resources/manifest.json,
+#       resources/classes/<test-class>/

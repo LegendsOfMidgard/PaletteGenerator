@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VortexRo — Palette Import Gallery (Owner)</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/importer.css" />
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <h1>Palette Import Gallery</h1>
+      <p class="sub">Owner review — load player <code>.pal</code> submissions, preview, accept &amp; export a manifest.</p>
+    </div>
+    <div class="toolbar">
+      <label class="field">
+        <span>Submissions</span>
+        <input id="fileInput" type="file" accept=".pal" multiple />
+      </label>
+      <button id="exportBtn" class="primary" disabled>Export manifest</button>
+      <button id="copyBtn" class="ghost" disabled>Copy JSON</button>
+      <button id="clearBtn" class="ghost">Clear</button>
+    </div>
+  </header>
+
+  <main class="importer-main">
+    <p id="counts" class="status">No submissions loaded.</p>
+    <div id="gallery" class="gallery"></div>
+  </main>
+
+  <script type="module" src="js/importer.js"></script>
+</body>
+</html>

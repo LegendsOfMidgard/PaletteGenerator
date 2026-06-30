@@ -1,0 +1,52 @@
+/* Importer-only styles. Reuses the variables/look from style.css. Scoped under
+   .importer-main / .card so nothing here touches the generator page selectors. */
+
+.importer-main { display:block; padding:22px; }
+
+.importer-main .status { font-size:13px; }
+.importer-main .status b { color:var(--fg); font-variant-numeric:tabular-nums; }
+
+.gallery {
+  display:grid; gap:18px;
+  grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));
+  align-items:start;
+}
+
+.card {
+  background:var(--panel); border:1px solid var(--line); border-radius:12px;
+  padding:14px 16px; display:flex; flex-direction:column; gap:10px;
+}
+.card.accepted { border-color:#3c6b46; box-shadow:0 0 0 1px #3c6b46 inset; }
+.card.rejected { opacity:.62; }
+.card.unmatched { border-color:#7a5a2c; }
+
+.card-head { display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
+.card-title { font-weight:600; font-size:14px; }
+.card-sub { color:var(--muted); font-size:11.5px; }
+.card-slot {
+  font-size:11px; font-variant-numeric:tabular-nums; color:#c7ccd6;
+  background:var(--panel-2); border:1px solid var(--line); border-radius:6px; padding:2px 8px;
+}
+.badge-unmatched { color:#e0a23c; font-size:11px; text-transform:uppercase; letter-spacing:.4px; }
+
+.card-stage {
+  border-radius:10px; padding:6px; display:flex; justify-content:center; min-height:170px; align-items:center;
+  background:#0c0d11 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Crect width='8' height='8' fill='%231b1d22'/%3E%3Crect x='8' y='8' width='8' height='8' fill='%231b1d22'/%3E%3C/svg%3E");
+}
+.card-stage canvas { image-rendering:pixelated; }
+
+.card-frames { display:flex; align-items:center; justify-content:center; gap:10px; }
+.card-frames button { background:#2d313b; color:var(--fg); padding:4px 10px; font-weight:500; }
+.card-frames .hint { min-width:84px; text-align:center; }
+
+.pal-grid { image-rendering:pixelated; border-radius:6px; display:block; width:100%; height:auto; }
+
+.card-actions { display:flex; gap:8px; }
+.card-actions button { flex:1; }
+.btn-accept { background:#3f9d57; color:#0a160d; }
+.btn-reject { background:#2d313b; color:var(--fg); font-weight:500; }
+.card.accepted .btn-accept { box-shadow:0 0 0 2px #8be0a0 inset; }
+.card.rejected .btn-reject { box-shadow:0 0 0 2px #c98b8b inset; }
+
+.card-file { color:var(--muted); font-size:10.5px; word-break:break-all; }
+.card-error { color:#e06c6c; font-size:12px; }

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VortexRo — Palette Generator</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <h1>Palette Generator</h1>
+      <p class="sub">Recolor your class outfit — skin &amp; outline stay protected.</p>
+    </div>
+    <div class="toolbar">
+      <label class="field">
+        <span>Class</span>
+        <select id="classSelect"></select>
+      </label>
+      <label class="field">
+        <span>Slot</span>
+        <input id="slotId" type="number" min="1" max="255" value="1" title="clothes_color slot id (X)" />
+      </label>
+      <button id="saveProjBtn" class="ghost" title="download all your edits as a project file">Save project</button>
+      <button id="loadProjBtn" class="ghost" title="restore edits from a project file">Load project</button>
+      <input id="loadProjInput" type="file" accept="application/json,.json" hidden />
+      <button id="exportBtn" class="primary">Export .pal</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- preview -->
+    <section class="panel preview">
+      <h2>Preview</h2>
+      <div class="stage">
+        <canvas id="spriteCanvas" width="240" height="280"></canvas>
+      </div>
+      <div class="frameNav">
+        <button id="framePrev" title="previous frame">&#9664;</button>
+        <span id="frameLabel" class="hint">no sprite</span>
+        <button id="frameNext" title="next frame">&#9654;</button>
+      </div>
+    </section>
+
+    <!-- editor -->
+    <section class="panel editor">
+      <div class="panel-head">
+        <h2>Colors</h2>
+        <div class="head-actions">
+          <button id="randomBtn" class="ghost">Randomize</button>
+          <button id="resetBtn" class="ghost">Reset</button>
+        </div>
+      </div>
+      <p id="status" class="status"></p>
+      <div id="zones" class="zones"></div>
+    </section>
+
+    <!-- palette reference -->
+    <section class="panel ref">
+      <h2>Palette <span class="legend">bordered = editable · dim = protected</span></h2>
+      <canvas id="paletteCanvas" width="320" height="320"></canvas>
+    </section>
+  </main>
+
+  <script type="module" src="js/editor.js"></script>
+</body>
+</html>
