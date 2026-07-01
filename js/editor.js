@@ -3,7 +3,7 @@
 // each zone gets Hue/Saturation/Brightness sliders -> live recolour of both the
 // palette grid and the body sprite -> export the result as a .pal.
 
-import { downloadPal } from "./formats/pal.js";
+import { downloadPal, writePal } from "./formats/pal.js";
 import { loadSpr, loadAct, drawSprite, drawAction, frameCount, pickIndexAt } from "./render.js";
 import { computeZones, applyZone, rgb2hsv } from "./zones.js";
 import { saveClass, loadClassData, exportProject, importProject,
@@ -102,9 +102,12 @@ async function loadClass(slug) {
   // Valid saved params use the new absolute {h,s,v} shape; legacy {hue,sat,val}
   // deltas are discarded (fall back to defaults / theme).
   const validSaved = saved && saved.params && saved.params.every((p) => p && typeof p.h === "number");
+  const hasOverrides = Object.keys(state.overrides).length > 0;
   if (validSaved) {
     state.params = saved.params.map((p) => ({ h: p.h, s: p.s, v: p.v }));
-  } else if (state.theme) {
+  } else if (state.theme && !hasOverrides) {
+    // Theme only seeds classes with NO edits of their own — a class that already
+    // has per-index overrides keeps them instead of being tinted by the theme.
     state.params = defaultParams();
     applyThemeToParams();
   } else {
@@ -557,6 +560,34 @@ els.loadProjInput.addEventListener("change", async (e) => {
     els.status.textContent = "Load failed: " + err.message;
   }
 });
+
+// Automation API (only under ?debug) so the browser can be driven programmatically
+// without touching the native colour dialog: set zone/index colours, rotate,
+// zoom, switch class/mode, and dump the current palette as base64.
+if (state.debug) {
+  window.__pg = {
+    zones: () => state.zones.map((z, i) => ({ i, cols: z.indices.length, color: rgb2hex(state.working[z.repIdx >= 0 ? z.repIdx : z.indices[0]]) })),
+    setZone: (i, hex) => { applyPicked(i, hex); },
+    setOverride: (idx, hex) => { state.overrides[idx] = hex2rgb(hex); recompute(); saveClass(state.slotId, state.slug, state.params, state.overrides); },
+    reset: () => els.reset.click(),
+    rotate: (d = 1) => step(d),
+    zoom: (z) => setZoom(z),
+    setMode: (m) => { state.mode = m; els.mode.value = m; recompute(); },
+    setClass: async (slug) => { els.select.value = slug; await loadClass(slug); },
+    classes: () => Array.from(els.select.options).map((o) => ({ slug: o.value, label: o.textContent })),
+    dumpPal: () => btoa(String.fromCharCode(...writePal(state.working))),
+    // Load a full 256-colour palette (e.g. a designer .pal) onto the EDITABLE
+    // indices as per-index overrides — reproduces the designer's cloth exactly,
+    // keeps the tool's protected skin/outline, and stays editable/exportable.
+    applyPal: (cols) => {
+      state.overrides = {};
+      for (let i = 0; i < 256; i++) if (state.mask[i] === 1 && cols[i]) state.overrides[i] = cols[i].slice();
+      recompute();
+      saveClass(state.slotId, state.slug, state.params, state.overrides);
+    },
+    slug: () => state.slug,
+  };
+}
 
 state.slotId = getActiveId();
 state.theme = getTheme(state.slotId);
