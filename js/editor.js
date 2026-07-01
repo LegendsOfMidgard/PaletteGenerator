@@ -27,6 +27,7 @@ const state = {
   spr: null, act: null, dir: 0, animFrame: 0, timer: null, frame: 0,
   theme: null,   // active slot's coherent palette [hex,...] | null
   slotId: 1,     // active slot id (== clothes_color id)
+  mode: "faithful",   // recolour algorithm: "faithful" | "varied" (v1 look)
   zoom: 2,
   panX: 0, panY: 0,   // sprite preview offset (right-drag to move)
   debug: new URLSearchParams(location.search).has("debug"),  // ?debug=1 -> edit/inspect protected indices too
@@ -41,6 +42,7 @@ const els = {
   zones: document.getElementById("zones"),
   reset: document.getElementById("resetBtn"),
   random: document.getElementById("randomBtn"),
+  mode: document.getElementById("modeSelect"),
   setTheme: document.getElementById("setThemeBtn"),
   saveProj: document.getElementById("saveProjBtn"),
   loadProj: document.getElementById("loadProjBtn"),
@@ -156,7 +158,7 @@ function defaultParams() {
 
 function recompute() {
   state.working = state.base.map((c) => c.slice());
-  state.zones.forEach((z, i) => applyZone(state.base, state.working, z, state.params[i]));
+  state.zones.forEach((z, i) => applyZone(state.base, state.working, z, state.params[i], state.mode));
   // Manual per-index overrides win over zone sliders — apply them last.
   for (const k in state.overrides) state.working[+k] = state.overrides[k].slice();
   drawPalette();
@@ -213,7 +215,7 @@ function updateSwatch(zi) {
   // reflect the zone's current representative colour on the picker swatch
   const z = state.zones[zi];
   const tmp = state.base.map((c) => c.slice());
-  applyZone(state.base, tmp, z, state.params[zi]);
+  applyZone(state.base, tmp, z, state.params[zi], state.mode);
   const sw = els.zones.querySelector(`[data-sw="${zi}"]`);
   if (sw && z.indices.length) {
     sw.value = rgb2hex(tmp[z.repIdx >= 0 ? z.repIdx : z.indices[0]]);
@@ -239,7 +241,7 @@ function applyPicked(zi, hex) {
 function captureTheme() {
   return state.zones.map((z, i) => {
     const tmp = state.base.map((c) => c.slice());
-    applyZone(state.base, tmp, z, state.params[i]);
+    applyZone(state.base, tmp, z, state.params[i], state.mode);
     return rgb2hex(tmp[z.repIdx >= 0 ? z.repIdx : z.indices[0]]);
   });
 }
@@ -458,6 +460,14 @@ els.setTheme.addEventListener("click", () => {
   els.status.textContent = `Slot palette set (${state.theme.length} colours) — applies to unedited classes.`;
 });
 
+const MODE_KEY = "vortexro_palette_mode_v1";
+els.mode.addEventListener("change", () => {
+  state.mode = els.mode.value;
+  try { localStorage.setItem(MODE_KEY, state.mode); } catch { /* */ }
+  recompute();
+  syncSliders();   // swatches reflect the mode's output
+});
+
 // ---- slots ------------------------------------------------------------------
 
 function buildSlotSelect() {
@@ -550,6 +560,8 @@ els.loadProjInput.addEventListener("change", async (e) => {
 
 state.slotId = getActiveId();
 state.theme = getTheme(state.slotId);
+try { state.mode = localStorage.getItem(MODE_KEY) || "faithful"; } catch { /* */ }
+els.mode.value = state.mode;
 buildSlotSelect();
 const buildEl = document.getElementById("buildId");
 if (buildEl) buildEl.textContent = `build ${typeof __BUILD_ID__ !== "undefined" ? __BUILD_ID__ : "dev"}`;

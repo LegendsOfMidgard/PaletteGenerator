@@ -102,17 +102,37 @@ export function computeZones(base, mask) {
               .map(({ id, indices, color, repIdx }) => ({ id, indices, color, repIdx }));
 }
 
-// Recolour a zone to an ABSOLUTE target colour {h(0-360), s(0-1), v(0-1)} while
-// preserving the original light->dark shading ramp. Each index keeps its base
-// brightness RELATIVE to the zone's representative, so the part stays shaded but
-// is faithfully tinted: the representative hits the target exactly, and pure
-// red / black are reachable (unlike the old multiplicative H/S/B deltas).
-export function applyZone(base, working, zone, { h, s, v }) {
+const clamp01 = (x) => Math.max(0, Math.min(1, x));
+
+// Recolour a zone to an ABSOLUTE target colour {h(0-360), s(0-1), v(0-1)}.
+// Two looks, both driven by the same target so the colour picker is shared:
+//
+//  mode "faithful" (default): tint every index to the target, keeping only its
+//    base brightness RELATIVE to the zone rep. The picked colour renders exactly
+//    across the whole part; pure red / true black are reachable.
+//
+//  mode "varied" (the original v1 look): derive clamped multiplicative H/S/B
+//    deltas from target-vs-rep and apply them per index, so each index keeps its
+//    own hue/sat offset (e.g. gold highlights survive) and brightness never
+//    fully collapses (the 0.5x floor is what gave "black -> black/grey/gold").
+export function applyZone(base, working, zone, { h, s, v }, mode = "faithful") {
   const repIdx = zone.repIdx >= 0 ? zone.repIdx : zone.indices[0];
-  const V0 = rgb2hsv(base[repIdx])[2] || 1;
+  const [rh, rs, rv] = rgb2hsv(base[repIdx]);
+
+  if (mode === "varied") {
+    const dh = ((h - rh + 540) % 360) - 180;
+    const ms = Math.max(0, Math.min(2, rs > 0.01 ? s / rs : (s > 0.01 ? 2 : 1)));
+    const mv = Math.max(0.5, Math.min(1.5, rv > 0.01 ? v / rv : 1));
+    for (const i of zone.indices) {
+      const [bh, bs, bv] = rgb2hsv(base[i]);
+      working[i] = hsv2rgb(bh + dh, clamp01(bs * ms), clamp01(bv * mv));
+    }
+    return;
+  }
+
+  const V0 = rv || 1;
   for (const i of zone.indices) {
     const bv = rgb2hsv(base[i])[2];
-    const ratio = bv / V0;
-    working[i] = hsv2rgb(h, s, Math.max(0, Math.min(1, v * ratio)));
+    working[i] = hsv2rgb(h, s, clamp01(v * bv / V0));
   }
 }
