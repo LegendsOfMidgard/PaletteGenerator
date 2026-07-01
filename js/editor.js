@@ -551,4 +551,6 @@ els.loadProjInput.addEventListener("change", async (e) => {
 state.slotId = getActiveId();
 state.theme = getTheme(state.slotId);
 buildSlotSelect();
+const buildEl = document.getElementById("buildId");
+if (buildEl) buildEl.textContent = `build ${typeof __BUILD_ID__ !== "undefined" ? __BUILD_ID__ : "dev"}`;
 loadIndex().catch((e) => (els.status.textContent = "Error: " + e.message));

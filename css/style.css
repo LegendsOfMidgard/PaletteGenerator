@@ -14,6 +14,7 @@ header {
 .brand h1 { margin:0; font-size:18px; letter-spacing:.2px; }
 .brand h1::before { content:"◆ "; color:var(--accent); }
 .sub { margin:3px 0 0; color:var(--muted); font-size:12.5px; }
+.build { color:#5b616c; font-size:11px; font-family:monospace; margin-left:6px; }
 .toolbar { display:flex; gap:12px; align-items:flex-end; }
 .field { display:flex; flex-direction:column; gap:4px; font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; }
 select, input, button { font:inherit; }

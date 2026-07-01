@@ -4,7 +4,17 @@
 // only deters casual copying (DevTools can still inspect the running code).
 
 const path = require("path");
+const webpack = require("webpack");
+const { execSync } = require("child_process");
 const WebpackObfuscator = require("webpack-obfuscator");
+
+// Build id shown in the UI so it's easy to tell which commit Vercel deployed.
+let buildId = "dev";
+try {
+  const sha = execSync("git rev-parse --short HEAD").toString().trim();
+  const date = new Date().toISOString().slice(0, 16).replace("T", " ");
+  buildId = `${sha} · ${date}`;
+} catch { /* not a git checkout */ }
 
 module.exports = {
   mode: "production",
@@ -20,6 +30,7 @@ module.exports = {
   },
   optimization: { minimize: true },
   plugins: [
+    new webpack.DefinePlugin({ __BUILD_ID__: JSON.stringify(buildId) }),
     new WebpackObfuscator(
       {
         compact: true,
