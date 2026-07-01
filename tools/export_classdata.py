@@ -17,6 +17,15 @@ from class_map import CLASS_MAP, GROUP_ORDER
 HEADER = r"E:\VortexRo\dll\Vortexoverlay\ragnarok\palette\palette_repaint_data.h"
 OUT_DIR = os.path.join(os.path.dirname(__file__), "..", "resources", "classdata")
 
+# Manual mask corrections layered over the DLL header mask, keyed by output slug.
+# editable  -> force dyeable (1);  protected -> force skin/fixed (0).
+# NOTE: for in-client parity these should eventually be mirrored into the DLL
+# generator (gen_repaint_table.py SKIN_OVERRIDES) and the header regenerated.
+MASK_OVERRIDES = {
+    "b9abc8f1_f": {"editable": list(range(19, 32))},    # Dancer (F): 19-31 are cloth, not skin
+    "b1c3bcf6_f": {"protected": list(range(32, 38))},   # Archer (F): 32-37 are skin
+}
+
 
 def base_kr(token, sex):
     """Korean token with the trailing gender char (남/여) + separators stripped."""
@@ -83,9 +92,16 @@ def main():
         slug = slugify(tb, sex)
         raw = bases[n]                       # 1024 = 256 * RGBA
         base = [[raw[i * 4], raw[i * 4 + 1], raw[i * 4 + 2]] for i in range(256)]
+        mask = list(masks[n])
+        ov = MASK_OVERRIDES.get(slug)
+        if ov:
+            for i in ov.get("editable", []):
+                mask[i] = 1
+            for i in ov.get("protected", []):
+                mask[i] = 0
         rec = {"token": token, "slug": slug, "sex": sex,
                "displayName": display_name, "group": group,
-               "tokenHex": tb.hex(), "base": base, "mask": masks[n]}
+               "tokenHex": tb.hex(), "base": base, "mask": mask}
         with open(os.path.join(OUT_DIR, slug + ".json"), "w", encoding="utf-8") as f:
             json.dump(rec, f, ensure_ascii=False, separators=(",", ":"))
         index.append({"slug": slug, "token": token, "sex": sex,
