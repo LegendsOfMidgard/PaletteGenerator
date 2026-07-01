@@ -49,8 +49,10 @@ main { display:flex; flex-wrap:wrap; gap:18px; padding:22px; align-items:flex-st
 
 /* editor / zones */
 .editor { flex:0 1 460px; min-width:320px; max-width:480px; }
-.panel-head { display:flex; align-items:center; justify-content:space-between; }
-.head-actions { display:flex; gap:8px; }
+.panel-head { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.head-actions { display:flex; gap:8px; align-items:center; flex-wrap:wrap; justify-content:flex-end; }
+.head-actions button, .head-actions select { padding:7px 12px; font-size:12px; white-space:nowrap; }
+#modeSelect { min-width:0; width:auto; border-radius:7px; }
 .zones { display:flex; flex-direction:column; gap:10px; }
 .zone { background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:12px 14px; }
 .zone-head { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
