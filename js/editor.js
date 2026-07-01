@@ -4,10 +4,11 @@
 // palette grid and the body sprite -> export the result as a .pal.
 
 import { downloadPal } from "./formats/pal.js";
-import { loadSpr, loadAct, drawSprite, drawAction, frameCount } from "./render.js";
+import { loadSpr, loadAct, drawSprite, drawAction, frameCount, pickIndexAt } from "./render.js";
 import { computeZones, applyZone, rgb2hsv } from "./zones.js";
-import { saveClass, loadClassParams, exportProject, importProject,
-         saveTheme, loadTheme, clearTheme } from "./storage.js";
+import { saveClass, loadClassData, exportProject, importProject,
+         listSlots, getActiveId, setActiveId, addSlot, renameSlot, deleteSlot,
+         getTheme, setTheme } from "./storage.js";
 
 const hex2 = (n) => n.toString(16).padStart(2, "0");
 const rgb2hex = ([r, g, b]) => `#${hex2(r)}${hex2(g)}${hex2(b)}`;
@@ -20,9 +21,15 @@ const state = {
   slug: null, token: null, displayName: null, sex: "",
   base: null, mask: null, working: null,
   zones: [], params: [],
+  overrides: {},        // { <paletteIndex>: [r,g,b] } manual per-index colours
+  selIdx: -1,           // currently selected palette index (grid border)
+  hlIdx: -1,            // index flashed red on the sprite (temporary)
   spr: null, act: null, dir: 0, animFrame: 0, timer: null, frame: 0,
-  theme: null, // [hex,...] absolute target colours carried across classes
+  theme: null,   // active slot's coherent palette [hex,...] | null
+  slotId: 1,     // active slot id (== clothes_color id)
   zoom: 2,
+  panX: 0, panY: 0,   // sprite preview offset (right-drag to move)
+  debug: new URLSearchParams(location.search).has("debug"),  // ?debug=1 -> edit/inspect protected indices too
 };
 const ZOOM_MIN = 1, ZOOM_MAX = 6;
 
@@ -34,12 +41,14 @@ const els = {
   zones: document.getElementById("zones"),
   reset: document.getElementById("resetBtn"),
   random: document.getElementById("randomBtn"),
-  pin: document.getElementById("pinBtn"),
-  export: document.getElementById("exportBtn"),
+  setTheme: document.getElementById("setThemeBtn"),
   saveProj: document.getElementById("saveProjBtn"),
   loadProj: document.getElementById("loadProjBtn"),
   loadProjInput: document.getElementById("loadProjInput"),
-  slot: document.getElementById("slotId"),
+  slotSelect: document.getElementById("slotSelect"),
+  newSlot: document.getElementById("newSlotBtn"),
+  renameSlot: document.getElementById("renameSlotBtn"),
+  delSlot: document.getElementById("delSlotBtn"),
   frameLabel: document.getElementById("frameLabel"),
   framePrev: document.getElementById("framePrev"),
   frameNext: document.getElementById("frameNext"),
@@ -81,21 +90,27 @@ async function loadClass(slug) {
   state.base = d.base;
   state.mask = d.mask;
   state.zones = computeZones(d.base, d.mask);
-  // Theme (coherent palette) takes precedence; otherwise restore saved tweaks.
-  if (state.theme) {
+  state.selIdx = -1;
+  state.panX = 0; state.panY = 0;
+  // A class's OWN saved edits always win. The theme only seeds classes that
+  // have no edits of their own — so revisiting a class you tweaked restores
+  // your colours instead of being overwritten by the pinned theme.
+  const saved = loadClassData(state.slotId, slug, state.zones.length);
+  state.overrides = saved && saved.overrides ? { ...saved.overrides } : {};
+  if (saved && saved.params) {
+    state.params = saved.params.map((p) => ({ hue: p.hue, sat: p.sat, val: p.val }));
+  } else if (state.theme) {
     state.params = state.zones.map(() => ({ hue: 0, sat: 1, val: 1 }));
     applyThemeToParams();
   } else {
-    const saved = loadClassParams(slug, state.zones.length);
-    state.params = saved
-      ? saved.map((p) => ({ hue: p.hue, sat: p.sat, val: p.val }))
-      : state.zones.map(() => ({ hue: 0, sat: 1, val: 1 }));
+    state.params = state.zones.map(() => ({ hue: 0, sat: 1, val: 1 }));
   }
   state.working = d.base.map((c) => c.slice());
 
   const label = state.sex ? `${state.displayName} (${SEX_LABEL[state.sex]})` : state.displayName;
   const themed = state.theme ? ` · 🎨 theme applied (${state.theme.length} colours)` : "";
-  els.status.textContent = `${label} — ${state.zones.length} colour zone${state.zones.length === 1 ? "" : "s"}${themed}.`;
+  const dbg = state.debug ? " · 🐞 debug (protected editable)" : "";
+  els.status.textContent = `${label} — ${state.zones.length} colour zone${state.zones.length === 1 ? "" : "s"}${themed}${dbg}.`;
   buildZoneUI();
   syncSliders();
 
@@ -130,6 +145,8 @@ function stopAnim() { if (state.timer) { clearInterval(state.timer); state.timer
 function recompute() {
   state.working = state.base.map((c) => c.slice());
   state.zones.forEach((z, i) => applyZone(state.base, state.working, z, state.params[i]));
+  // Manual per-index overrides win over zone sliders — apply them last.
+  for (const k in state.overrides) state.working[+k] = state.overrides[k].slice();
   drawPalette();
   renderSprite();
 }
@@ -177,7 +194,7 @@ function onSlider(e) {
   els.zones.querySelector(`[data-v="${zi}-${key}"]`).textContent = raw + unit;
   updateSwatch(zi);
   recompute();
-  saveClass(state.slug, state.params);
+  saveClass(state.slotId, state.slug, state.params, state.overrides);
 }
 
 function updateSwatch(zi) {
@@ -207,7 +224,7 @@ function applyPicked(zi, hex) {
   state.params[zi] = paramsForTarget(state.zones[zi], hex);
   syncSliders();
   recompute();
-  saveClass(state.slug, state.params);
+  saveClass(state.slotId, state.slug, state.params, state.overrides);
 }
 
 // Current absolute target colour of each zone (the recoloured representative).
@@ -245,12 +262,135 @@ function drawPalette() {
       ctx.fillStyle = "rgba(0,0,0,0.45)";
       ctx.fillRect(x, y, cell, cell);
     }
+    if (i === state.selIdx) {
+      ctx.strokeStyle = "#ff2828"; ctx.lineWidth = 3;
+      ctx.strokeRect(x + 1.5, y + 1.5, cell - 3, cell - 3);
+    }
+    if (state.debug) {
+      const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+      ctx.fillStyle = lum > 110 ? "#000" : "#fff";
+      ctx.font = "8px monospace"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText(i, x + cell / 2, y + cell / 2 + 0.5);
+    }
   }
 }
 
+// ---- per-index editing (palette grid) ---------------------------------------
+
+// Hidden native colour input reused for index picking, and a floating tooltip.
+const idxColor = document.createElement("input");
+idxColor.type = "color";
+idxColor.style.cssText = "position:fixed;width:1px;height:1px;opacity:0;border:0;padding:0;pointer-events:none;";
+document.body.appendChild(idxColor);
+
+const tip = document.createElement("div");
+tip.style.cssText = "position:fixed;z-index:99;pointer-events:none;background:#0c0d11;color:#e7e9ee;" +
+  "border:1px solid #3a3f4b;border-radius:6px;padding:5px 9px;font:12px system-ui;display:none;box-shadow:0 3px 10px rgba(0,0,0,.5);";
+document.body.appendChild(tip);
+let tipTimer = null;
+function showTip(e, msg) {
+  tip.textContent = msg;
+  tip.style.left = (e.clientX + 12) + "px";
+  tip.style.top = (e.clientY + 12) + "px";
+  tip.style.display = "block";
+  if (tipTimer) clearTimeout(tipTimer);
+  tipTimer = setTimeout(() => { tip.style.display = "none"; }, 1600);
+}
+
+// Map a mouse event on the palette canvas to a 0..255 index (or -1).
+function palIndexAt(e) {
+  const rect = els.pal.getBoundingClientRect();
+  const cell = 20, cols = 16;
+  const px = (e.clientX - rect.left) * (els.pal.width / rect.width);
+  const py = (e.clientY - rect.top) * (els.pal.height / rect.height);
+  const col = Math.floor(px / cell), row = Math.floor(py / cell);
+  if (col < 0 || col >= cols || row < 0) return -1;
+  const i = row * cols + col;
+  return i >= 0 && i < 256 ? i : -1;
+}
+
+// Flash an index red on the sprite for a moment, then clear so the recoloured
+// result is visible (a persistent overlay would hide the change you just made).
+let hlTimer = null;
+function flashHighlight(i) {
+  state.hlIdx = i;
+  renderSprite();
+  if (hlTimer) clearTimeout(hlTimer);
+  hlTimer = setTimeout(() => { state.hlIdx = -1; renderSprite(); }, 800);
+}
+
+// Select an index and open the native picker to give it an absolute colour.
+// Protected (skin/outline) indices refuse and just show a tooltip.
+function editIndex(i, e) {
+  if (i < 0) return;
+  const [r, g, b] = state.working[i];
+  const protectedIdx = state.mask[i] !== 1;
+  if (protectedIdx) {
+    // Protected indices are never recoloured. In debug just report the index so
+    // the mask (which indices are skin/outline) can be reviewed by hand.
+    if (state.debug) { state.selIdx = i; drawPalette(); flashHighlight(i); showTip(e, `DEBUG · index #${i} · rgb(${r},${g},${b}) · protected`); }
+    else showTip(e, "Protected (skin / outline) — not editable");
+    return;
+  }
+  if (state.debug) showTip(e, `DEBUG · index #${i} · rgb(${r},${g},${b})`);
+  state.selIdx = i;
+  drawPalette();
+  flashHighlight(i);   // briefly paint the index red on the body, then fade so the real colour shows
+  idxColor.style.left = e.clientX + "px";
+  idxColor.style.top = e.clientY + "px";
+  idxColor.getBoundingClientRect();   // force layout flush so the picker anchors here, not at the old spot
+  idxColor.value = rgb2hex(state.working[i]);
+  idxColor.oninput = () => {
+    state.overrides[i] = hex2rgb(idxColor.value);
+    recompute();
+    saveClass(state.slotId, state.slug, state.params, state.overrides);
+  };
+  idxColor.click();
+}
+
+els.pal.addEventListener("click", (e) => editIndex(palIndexAt(e), e));
+
+// Left-click the body sprite -> hit-test to the palette index under the cursor.
+els.sprite.addEventListener("click", (e) => {
+  const rect = els.sprite.getBoundingClientRect();
+  const x = (e.clientX - rect.left) * (els.sprite.width / rect.width);
+  const y = (e.clientY - rect.top) * (els.sprite.height / rect.height);
+  editIndex(pickIndexAt(x, y), e);
+});
+
+// Right-drag the body sprite -> pan the preview.
+let panning = null;
+els.sprite.addEventListener("contextmenu", (e) => e.preventDefault());
+els.sprite.addEventListener("mousedown", (e) => {
+  if (e.button !== 2) return;
+  e.preventDefault();
+  panning = { x: e.clientX, y: e.clientY, sc: els.sprite.width / els.sprite.getBoundingClientRect().width };
+});
+window.addEventListener("mousemove", (e) => {
+  if (!panning) return;
+  state.panX += (e.clientX - panning.x) * panning.sc;
+  state.panY += (e.clientY - panning.y) * panning.sc;
+  panning.x = e.clientX; panning.y = e.clientY;
+  renderSprite();
+});
+window.addEventListener("mouseup", () => { panning = null; });
+
+// Right-click an editable index to clear its manual override.
+els.pal.addEventListener("contextmenu", (e) => {
+  const i = palIndexAt(e);
+  if (i < 0 || state.mask[i] !== 1) return;
+  e.preventDefault();
+  if (state.overrides[i]) {
+    delete state.overrides[i];
+    recompute();
+    saveClass(state.slotId, state.slug, state.params, state.overrides);
+    showTip(e, "Override cleared");
+  }
+});
+
 function renderSprite() {
   if (state.act && state.spr) {
-    drawAction(els.sprite, state.spr, state.act, idleAction(), state.animFrame, state.working, state.zoom);
+    drawAction(els.sprite, state.spr, state.act, idleAction(), state.animFrame, state.working, state.zoom, state.panX, state.panY, state.hlIdx);
     els.frameLabel.textContent = `facing ${DIR_NAMES[state.dir]}`;
   } else if (state.spr) {
     drawSprite(els.sprite, state.spr, state.frame, state.working); // fallback: raw frame
@@ -267,9 +407,10 @@ els.select.addEventListener("change", () => loadClass(els.select.value));
 
 els.reset.addEventListener("click", () => {
   state.params = state.zones.map(() => ({ hue: 0, sat: 1, val: 1 }));
+  state.overrides = {}; state.selIdx = -1;
   syncSliders();
   recompute();
-  saveClass(state.slug, state.params);
+  saveClass(state.slotId, state.slug, state.params, state.overrides);
 });
 
 els.random.addEventListener("click", () => {
@@ -278,9 +419,10 @@ els.random.addEventListener("click", () => {
     sat: 0.7 + Math.random() * 0.8,
     val: 0.85 + Math.random() * 0.3,
   }));
+  state.overrides = {}; state.selIdx = -1;
   syncSliders();
   recompute();
-  saveClass(state.slug, state.params);
+  saveClass(state.slotId, state.slug, state.params, state.overrides);
 });
 
 function setSlider(zi, key, value, unit) {
@@ -300,22 +442,49 @@ function syncSliders() {
   });
 }
 
-els.pin.addEventListener("click", () => {
-  if (state.theme) {                 // unpin
-    state.theme = null;
-    clearTheme();
-  } else {                           // pin current zone colours as the theme
-    state.theme = captureTheme();
-    saveTheme(state.theme);
-  }
-  refreshThemeUI();
+// Capture the current class's colours as this slot's coherent palette. It then
+// seeds every class in the slot that you haven't hand-edited.
+els.setTheme.addEventListener("click", () => {
+  state.theme = captureTheme();
+  setTheme(state.slotId, state.theme);
+  els.status.textContent = `Slot palette set (${state.theme.length} colours) — applies to unedited classes.`;
 });
 
-function refreshThemeUI() {
-  const on = !!state.theme;
-  els.pin.textContent = on ? `Unpin (${state.theme.length})` : "Pin colours";
-  els.pin.classList.toggle("active", on);
+// ---- slots ------------------------------------------------------------------
+
+function buildSlotSelect() {
+  els.slotSelect.innerHTML = "";
+  for (const s of listSlots()) {
+    const o = document.createElement("option");
+    o.value = s.id;
+    o.textContent = `${s.id} · ${s.name}`;
+    els.slotSelect.appendChild(o);
+  }
+  els.slotSelect.value = state.slotId;
 }
+
+function switchSlot(id) {
+  state.slotId = id;
+  setActiveId(id);
+  state.theme = getTheme(id);
+  els.slotSelect.value = id;
+  if (state.slug) loadClass(state.slug);
+}
+
+els.slotSelect.addEventListener("change", () => switchSlot(+els.slotSelect.value));
+els.newSlot.addEventListener("click", () => { const id = addSlot(); buildSlotSelect(); switchSlot(id); });
+els.renameSlot.addEventListener("click", () => {
+  const name = prompt("Slot name:", listSlots().find((s) => s.id === state.slotId)?.name || "");
+  if (name == null) return;
+  renameSlot(state.slotId, name.trim());
+  buildSlotSelect();
+});
+els.delSlot.addEventListener("click", () => {
+  if (!confirm(`Delete slot ${state.slotId} and all its edits?`)) return;
+  const id = deleteSlot(state.slotId);
+  buildSlotSelect();
+  switchSlot(id);
+});
 
 els.framePrev.addEventListener("click", () => step(-1));
 els.frameNext.addEventListener("click", () => step(1));
@@ -345,15 +514,8 @@ function step(d) {
   }
 }
 
-els.export?.addEventListener("click", () => {
-  if (!state.working) return;
-  const x = Math.max(1, Math.min(255, parseInt(els.slot.value, 10) || 1));
-  // Name the file with the ORIGINAL cp949 token bytes decoded as Windows-1252,
-  // matching how RO palette files actually live on disk / in the GRF
-  // (e.g. 궁수_여 -> ±Ã¼ö_¿©). Do NOT use the UTF-8 Korean or the display name.
-  downloadPal(state.working, `${palName()}_${x}.pal`);
-});
-
+// Export .pal is disabled in this build (button removed). palName() and
+// downloadPal are kept for the later build that re-adds batch export per slot.
 function palName() {
   if (!state.tokenHex) return state.token;
   const bytes = new Uint8Array(state.tokenHex.match(/../g).map((h) => parseInt(h, 16)));
@@ -368,13 +530,17 @@ els.loadProjInput.addEventListener("change", async (e) => {
   try {
     const n = importProject(await file.text());
     els.loadProjInput.value = "";
+    state.slotId = getActiveId();
+    state.theme = getTheme(state.slotId);
+    buildSlotSelect();
     await loadClass(state.slug);     // re-apply saved params to current class
-    els.status.textContent = `Loaded project — ${n} class${n === 1 ? "" : "es"} restored.`;
+    els.status.textContent = `Loaded project — ${n} slot${n === 1 ? "" : "s"} restored.`;
   } catch (err) {
     els.status.textContent = "Load failed: " + err.message;
   }
 });
 
-state.theme = loadTheme();
-refreshThemeUI();
+state.slotId = getActiveId();
+state.theme = getTheme(state.slotId);
+buildSlotSelect();
 loadIndex().catch((e) => (els.status.textContent = "Error: " + e.message));

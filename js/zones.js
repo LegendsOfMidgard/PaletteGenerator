@@ -4,7 +4,7 @@
 // one zone, so editing a zone fully recolours that part.
 
 const MAGENTA = (c) => c[0] === 255 && c[1] === 0 && c[2] === 255;
-const MAX_ZONES = 4;
+const MAX_ZONES = 8;
 const MERGE_DEG = 22;        // centres closer than this collapse into one zone
 const SAT_FLOOR = 0.15;      // below this a colour is "grey" — hue unreliable
 const VAL_FLOOR = 0.08;      // below this it's near-black

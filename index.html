@@ -19,10 +19,13 @@
       </label>
       <label class="field">
         <span>Slot</span>
-        <input id="slotId" type="number" min="1" max="255" value="1" title="clothes_color slot id (X)" />
+        <select id="slotSelect" title="palette slot (clothes_color id) — its colours apply to every class"></select>
       </label>
-      <button id="saveProjBtn" class="ghost" title="download all your edits as a project file">Save project</button>
-      <button id="loadProjBtn" class="ghost" title="restore edits from a project file">Load project</button>
+      <button id="newSlotBtn" class="ghost" title="add a new slot">+ Slot</button>
+      <button id="renameSlotBtn" class="ghost" title="rename this slot">Rename</button>
+      <button id="delSlotBtn" class="ghost" title="delete this slot">Delete</button>
+      <button id="saveProjBtn" class="ghost" title="download all your slots as a project file">Save project</button>
+      <button id="loadProjBtn" class="ghost" title="restore slots from a project file">Load project</button>
       <input id="loadProjInput" type="file" accept="application/json,.json" hidden />
       <!-- Export .pal button removed for this build; re-add in a later build. -->
     </div>
@@ -52,7 +55,7 @@
       <div class="panel-head">
         <h2>Colors</h2>
         <div class="head-actions">
-          <button id="pinBtn" class="ghost" title="carry these colours to every class (coherent palette)">Pin colours</button>
+          <button id="setThemeBtn" class="ghost" title="use the current colours as this slot's palette — seeds every class you haven't edited">Set slot palette</button>
           <button id="randomBtn" class="ghost">Randomize</button>
           <button id="resetBtn" class="ghost">Reset</button>
         </div>
