@@ -44,7 +44,7 @@ CLASS_MAP = {
     "하이위저드": ("High Wizard", "rebirth"),
     "프로페서": ("Professor", "rebirth"),
     "스나이퍼": ("Sniper", "rebirth"),
-    "민스트럴": ("Minstrel", "rebirth"),
+    "민스트럴": ("Clown", "rebirth"),   # client token 민스트럴 = our Clown roster slot (sprite=clown_m)
     "집시": ("Gypsy", "rebirth"),
     "하이프리스트": ("High Priest", "rebirth"),
     "챔피온": ("Champion", "rebirth"),
