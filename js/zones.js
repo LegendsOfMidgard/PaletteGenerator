@@ -102,14 +102,17 @@ export function computeZones(base, mask) {
               .map(({ id, indices, color, repIdx }) => ({ id, indices, color, repIdx }));
 }
 
-// Apply one zone's H/S/B deltas to the working palette, from the base colours.
-// hue: degrees (-180..180), sat: multiplier, val: multiplier.
-export function applyZone(base, working, zone, { hue, sat, val }) {
+// Recolour a zone to an ABSOLUTE target colour {h(0-360), s(0-1), v(0-1)} while
+// preserving the original light->dark shading ramp. Each index keeps its base
+// brightness RELATIVE to the zone's representative, so the part stays shaded but
+// is faithfully tinted: the representative hits the target exactly, and pure
+// red / black are reachable (unlike the old multiplicative H/S/B deltas).
+export function applyZone(base, working, zone, { h, s, v }) {
+  const repIdx = zone.repIdx >= 0 ? zone.repIdx : zone.indices[0];
+  const V0 = rgb2hsv(base[repIdx])[2] || 1;
   for (const i of zone.indices) {
-    let [h, s, v] = rgb2hsv(base[i]);
-    h += hue;
-    s = Math.max(0, Math.min(1, s * sat));
-    v = Math.max(0, Math.min(1, v * val));
-    working[i] = hsv2rgb(h, s, v);
+    const bv = rgb2hsv(base[i])[2];
+    const ratio = bv / V0;
+    working[i] = hsv2rgb(h, s, Math.max(0, Math.min(1, v * ratio)));
   }
 }

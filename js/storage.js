@@ -82,7 +82,7 @@ export function saveClass(id, slug, params, overrides) {
   const slot = s.slots[id];
   if (!slot) return;
   slot.classes[slug] = {
-    z: params.map((p) => ({ hue: p.hue, sat: p.sat, val: p.val })),
+    z: params.map((p) => ({ h: p.h, s: p.s, v: p.v })),
     ov: overrides && Object.keys(overrides).length ? overrides : undefined,
   };
   writeStore(s);

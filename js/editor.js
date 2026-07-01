@@ -97,13 +97,16 @@ async function loadClass(slug) {
   // your colours instead of being overwritten by the pinned theme.
   const saved = loadClassData(state.slotId, slug, state.zones.length);
   state.overrides = saved && saved.overrides ? { ...saved.overrides } : {};
-  if (saved && saved.params) {
-    state.params = saved.params.map((p) => ({ hue: p.hue, sat: p.sat, val: p.val }));
+  // Valid saved params use the new absolute {h,s,v} shape; legacy {hue,sat,val}
+  // deltas are discarded (fall back to defaults / theme).
+  const validSaved = saved && saved.params && saved.params.every((p) => p && typeof p.h === "number");
+  if (validSaved) {
+    state.params = saved.params.map((p) => ({ h: p.h, s: p.s, v: p.v }));
   } else if (state.theme) {
-    state.params = state.zones.map(() => ({ hue: 0, sat: 1, val: 1 }));
+    state.params = defaultParams();
     applyThemeToParams();
   } else {
-    state.params = state.zones.map(() => ({ hue: 0, sat: 1, val: 1 }));
+    state.params = defaultParams();
   }
   state.working = d.base.map((c) => c.slice());
 
@@ -142,6 +145,15 @@ function stopAnim() { if (state.timer) { clearInterval(state.timer); state.timer
 
 // ---- editing ----------------------------------------------------------------
 
+// Identity params: each zone's target = its own base representative colour, so a
+// freshly loaded class renders exactly like the original sprite.
+function defaultParams() {
+  return state.zones.map((z) => {
+    const [h, s, v] = rgb2hsv(z.color);
+    return { h, s, v };
+  });
+}
+
 function recompute() {
   state.working = state.base.map((c) => c.slice());
   state.zones.forEach((z, i) => applyZone(state.base, state.working, z, state.params[i]));
@@ -166,9 +178,9 @@ function buildZoneUI() {
         <span class="zone-name">Zone ${i + 1}</span>
         <span class="zone-count">${z.indices.length} cols</span>
       </div>
-      ${slider(i, "hue", "Hue", -180, 180, 0, "°")}
-      ${slider(i, "sat", "Saturation", 0, 200, 100, "%")}
-      ${slider(i, "val", "Brightness", 50, 150, 100, "%")}`;
+      ${slider(i, "h", "Hue", 0, 360, Math.round(state.params[i].h), "°")}
+      ${slider(i, "s", "Saturation", 0, 100, Math.round(state.params[i].s * 100), "%")}
+      ${slider(i, "v", "Brightness", 0, 100, Math.round(state.params[i].v * 100), "%")}`;
     els.zones.appendChild(card);
   });
   els.zones.querySelectorAll("input[type=range]").forEach((inp) => {
@@ -189,8 +201,8 @@ function slider(zi, key, label, min, max, val, unit) {
 
 function onSlider(e) {
   const zi = +e.target.dataset.z, key = e.target.dataset.k, raw = +e.target.value;
-  state.params[zi][key] = key === "hue" ? raw : raw / 100;
-  const unit = key === "hue" ? "°" : "%";
+  state.params[zi][key] = key === "h" ? raw : raw / 100;
+  const unit = key === "h" ? "°" : "%";
   els.zones.querySelector(`[data-v="${zi}-${key}"]`).textContent = raw + unit;
   updateSwatch(zi);
   recompute();
@@ -208,15 +220,11 @@ function updateSwatch(zi) {
   }
 }
 
-// Derive the H/S/B deltas that move a zone's BASE representative colour onto an
-// absolute target colour (hex). Pure — returns {hue,sat,val}, clamped to ranges.
-function paramsForTarget(z, hex) {
-  const [th, ts, tv] = rgb2hsv(hex2rgb(hex));
-  const [bh, bs, bv] = rgb2hsv(z.color);
-  const hue = ((th - bh + 540) % 360) - 180;
-  const sat = bs > 0.01 ? ts / bs : (ts > 0.01 ? 2 : 1);
-  const val = bv > 0.01 ? tv / bv : 1;
-  return { hue: clamp(Math.round(hue), -180, 180), sat: clamp(sat, 0, 2), val: clamp(val, 0.5, 1.5) };
+// The target colour for a zone is simply the picked colour in HSV — the recolour
+// preserves the base shading ramp, so this is faithful (no deltas, no clamping).
+function paramsForTarget(_z, hex) {
+  const [h, s, v] = rgb2hsv(hex2rgb(hex));
+  return { h, s, v };
 }
 
 // Pick an absolute colour for a zone (from the colour picker), apply live.
@@ -406,7 +414,7 @@ function renderSprite() {
 els.select.addEventListener("change", () => loadClass(els.select.value));
 
 els.reset.addEventListener("click", () => {
-  state.params = state.zones.map(() => ({ hue: 0, sat: 1, val: 1 }));
+  state.params = defaultParams();
   state.overrides = {}; state.selIdx = -1;
   syncSliders();
   recompute();
@@ -415,9 +423,9 @@ els.reset.addEventListener("click", () => {
 
 els.random.addEventListener("click", () => {
   state.params = state.zones.map(() => ({
-    hue: Math.round(Math.random() * 360 - 180),
-    sat: 0.7 + Math.random() * 0.8,
-    val: 0.85 + Math.random() * 0.3,
+    h: Math.round(Math.random() * 360),
+    s: 0.5 + Math.random() * 0.5,
+    v: 0.45 + Math.random() * 0.5,
   }));
   state.overrides = {}; state.selIdx = -1;
   syncSliders();
@@ -435,9 +443,9 @@ function setSlider(zi, key, value, unit) {
 // Reflect state.params on all sliders + swatches (after restore / randomize).
 function syncSliders() {
   state.zones.forEach((_, zi) => {
-    setSlider(zi, "hue", Math.round(state.params[zi].hue), "°");
-    setSlider(zi, "sat", Math.round(state.params[zi].sat * 100), "%");
-    setSlider(zi, "val", Math.round(state.params[zi].val * 100), "%");
+    setSlider(zi, "h", Math.round(state.params[zi].h), "°");
+    setSlider(zi, "s", Math.round(state.params[zi].s * 100), "%");
+    setSlider(zi, "v", Math.round(state.params[zi].v * 100), "%");
     updateSwatch(zi);
   });
 }
